@@ -1,0 +1,353 @@
+---
+title: '"Plotting Ssd1 Pileups v3"'
+author: "Rosey"
+date: "2 June 2020"
+output: html_document
+---
+---
+title: "Plotting Ssd1Pileups"
+author: "Rosey"
+date: "25 May 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(cowplot)
+library(seqinr)
+library(ggmsa)
+
+```
+
+##Reading Data
+
+```{r pileups}
+
+#SUN4 dataset 1
+
+SUN4_file_3_30 <- "3_30_PileUps/PileUpFiles/sense-reads_SUN4_genomic_20190114_Ssd1_CRAC_trimmed_NNNGTGAGC_SSD1_3_30.pileup"
+
+SUN4_pileup_file_3_30 <- read_tsv(SUN4_file_3_30, comment = "#")
+
+#SUN4 dataset 2
+
+SUN4_file_4_30 <- "4_30_PileUps/PileUpFiles/sense-reads_SUN4_genomic_20190114_Ssd1_CRAC_trimmed_NNNTGGAGC_SSD1_4_30.pileup"
+
+SUN4_pileup_file_4_30 <- read_tsv(SUN4_file_4_30, comment = "#")
+
+#SUN4 sequence
+
+SUN4_seq <- read.fasta(file = "SUN4_genomic.fasta")
+
+
+
+#TOS1 dataset 1
+
+TOS1_file_3_30 <- "3_30_PileUps/PileUpFiles/sense-reads_TOS1_genomic_20190114_Ssd1_CRAC_trimmed_NNNGTGAGC_SSD1_3_30.pileup"
+
+TOS1_pileup_file_3_30 <- read_tsv(TOS1_file_3_30, comment = "#")
+
+#TOS1 dataset 2
+
+TOS1_file_4_30 <- "4_30_PileUps/PileUpFiles/sense-reads_TOS1_genomic_20190114_Ssd1_CRAC_trimmed_NNNTGGAGC_SSD1_4_30.pileup"
+
+TOS1_pileup_file_4_30 <- read_tsv(TOS1_file_4_30, comment = "#")
+
+#TOS1 sequence
+
+#TOS1_seq <- read.fasta(file = "TOS1_genomic.fasta")
+
+
+
+#UTH1 dataset 1
+
+UTH1_file_3_30 <- "3_30_PileUps/PileUpFiles/sense-reads_UTH1_genomic_20190114_Ssd1_CRAC_trimmed_NNNGTGAGC_SSD1_3_30.pileup"
+
+UTH1_pileup_file_3_30 <- read_tsv(UTH1_file_3_30, comment = "#")
+
+#UTH1 dataset 2
+
+UTH1_file_4_30 <- "4_30_PileUps/PileUpFiles/sense-reads_UTH1_genomic_20190114_Ssd1_CRAC_trimmed_NNNTGGAGC_SSD1_4_30.pileup"
+
+UTH1_pileup_file_4_30 <- read_tsv(UTH1_file_4_30, comment = "#")
+
+
+#UTH1 sequence
+
+#UTH1_seq <- read.fasta(file = "UTH1_genomic.fasta")
+
+
+```
+
+
+##SUN4 5'UTR plots
+
+```{r plot SUN4, eval = TRUE, purl = TRUE}
+
+#dataset1
+SUN4_5UTR_3 <- SUN4_pileup_file_3_30 %>% slice(105:204)
+
+
+cDNAs <- SUN4_5UTR_3$cDNAs <- (SUN4_5UTR_3$hits - SUN4_5UTR_3$deletions - SUN4_5UTR_3$substitutions)
+
+str(SUN4_5UTR_3)
+
+SUN4_5UTR_types_3 <- gather(SUN4_5UTR_3,
+                value = "hits",
+                key = "type",
+                substitutions,deletions,cDNAs)
+
+#dataset2
+SUN4_5UTR_4 <- SUN4_pileup_file_4_30 %>% slice(105:204)
+
+
+cDNAs <- SUN4_5UTR_4$cDNAs <- (SUN4_5UTR_4$hits - SUN4_5UTR_4$deletions - SUN4_5UTR_4$substitutions)
+
+str(SUN4_5UTR_4)
+
+SUN4_5UTR_types_4 <- gather(SUN4_5UTR_4,
+                value = "hits",
+                key = "type",
+                substitutions,deletions,cDNAs)
+
+
+#plot bargraph of hits, deletions and substitutions for dataset 1
+
+ggplot(SUN4_5UTR_types_3,
+       aes(fill=factor(type, levels=c("cDNAs", "deletions", "substitutions")), y=hits, x=position)) +
+        geom_bar(position = "stack", stat= "identity") +
+        scale_fill_manual(values = c("grey60", "black", "red")) + ggtitle("SUN4 5'UTR" ) + labs(x= "position", y= "hits", fill="") +
+  #set transparency
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    axis.line.y = element_line(colour = "black"),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.y = element_text(size= 18, face = "bold"),
+    plot.title = element_text(size = 20, face = "bold"),
+    legend.text = element_text(size = 12))
+
+ggsave("Plots/SUN45UTRbarplot3.png", width = 26.3, height = 10, units = "cm")
+
+
+#plot bargraph of hits, deletions and substitutions for dataset 2
+
+ggplot(SUN4_5UTR_types_4,
+       aes(fill=factor(type, levels=c("cDNAs", "deletions", "substitutions")), y=hits, x=position)) +
+        geom_bar(position = "stack", stat= "identity") +
+        scale_fill_manual(values = c("grey60", "black", "red")) + ggtitle("SUN4 5'UTR" ) + labs(x= "position", y= "hits", fill="") +
+  #set transparency
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    axis.line.y = element_line(colour = "black"),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.y = element_text(size= 18, face = "bold"),
+    plot.title = element_text(size = 20, face = "bold"),
+    legend.text = element_text(size = 12))
+
+ggsave("Plots/SUN45UTRbarplot4.png", width = 26.3, height = 10, units = "cm")
+
+# plot sequence
+
+SUN4_5UTR_seq <- SUN4_seq [[1]]
+
+SUN4_5UTR_seq[120:204]
+
+SUN4_5UTR_tibble <- as_tibble(SUN4_5UTR_seq[120:204])
+
+
+
+
+
+```
+
+
+
+##UTH1 5'UTR plots
+
+```{r plot UTH1, eval = TRUE, purl = TRUE}
+
+
+#dataset1
+UTH1_5UTR_3 <- UTH1_pileup_file_3_30 %>% slice(1:213)
+
+cDNAs <- UTH1_5UTR_3$cDNAs <- (UTH1_5UTR_3$hits - UTH1_5UTR_3$deletions - UTH1_5UTR_3$substitutions)
+
+
+UTH1_5UTRtypes_3 <- gather(UTH1_5UTR_3,
+                       value = "hits",
+                       key = "type",
+                       substitutions, deletions, cDNAs)
+
+
+#dataset2
+UTH1_5UTR_4 <- UTH1_pileup_file_4_30 %>% slice(1:213)
+
+cDNAs <- UTH1_5UTR_4$cDNAs <- (UTH1_5UTR_4$hits - UTH1_5UTR_4$deletions - UTH1_5UTR_4$substitutions)
+
+
+UTH1_5UTRtypes_4 <- gather(UTH1_5UTR_4,
+                       value = "hits",
+                       key = "type",
+                       substitutions, deletions, cDNAs)
+
+
+#plot bargraph of hits, deletions and substitutions for dataset 1
+
+ggplot(UTH1_5UTRtypes_3,
+       aes(fill=factor(type, levels=c("cDNAs", "deletions", "substitutions")), y=hits, x=position)) +
+        geom_bar(position = "stack", stat= "identity") +
+        scale_fill_manual(values = c("grey60", "black", "red")) + ggtitle("UTH1 5'UTR") +
+labs(x= "position", y= "hits", fill="")+
+ #set transparency
+
+theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    axis.line.y = element_line(colour = "black"),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.y = element_text(size= 18, face = "bold"),
+    plot.title = element_text(size = 20, face = "bold"),
+    legend.text = element_text(size = 12))
+
+ggsave("Plots/UTH15UTRbarplot3.png", width = 26.3, height = 10, units = "cm")
+
+
+#plot bargraph of hits, deletions and substitutions for dataset 1
+
+ggplot(UTH1_5UTRtypes_4,
+       aes(fill=factor(type, levels=c("cDNAs", "deletions", "substitutions")), y=hits, x=position)) +
+        geom_bar(position = "stack", stat= "identity") +
+        scale_fill_manual(values = c("grey60", "black", "red")) + ggtitle("UTH1 5'UTR") +
+labs(x= "position", y= "hits", fill="")+
+ #set transparency
+
+theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    axis.line.y = element_line(colour = "black"),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.y = element_text(size= 18, face = "bold"),
+    plot.title = element_text(size = 20, face = "bold"),
+    legend.text = element_text(size = 12))
+
+ggsave("Plots/UTH15UTRbarplot4.png", width = 26.3, height = 10, units = "cm")
+
+
+```
+  
+  
+  
+##TOS1 5'UTR plots
+
+```{r plot TOS1, eval = TRUE, purl = TRUE}
+
+
+#dataset1
+TOS1_5UTR_3 <- TOS1_pileup_file_3_30 %>% slice(148:271)
+
+cDNAs <- TOS1_5UTR_3$cDNAs <- (TOS1_5UTR_3$hits - TOS1_5UTR_3$deletions - TOS1_5UTR_3$substitutions)
+
+
+TOS1_5UTRtypes_3 <- gather(TOS1_5UTR_3,
+                       value = "hits",
+                       key = "type",
+                       substitutions, deletions, cDNAs)
+
+
+#dataset2
+TOS1_5UTR_4 <- TOS1_pileup_file_4_30 %>% slice(148:271)
+
+cDNAs <- TOS1_5UTR_4$cDNAs <- (TOS1_5UTR_4$hits - TOS1_5UTR_4$deletions - TOS1_5UTR_4$substitutions)
+
+
+TOS1_5UTRtypes_4 <- gather(TOS1_5UTR_4,
+                       value = "hits",
+                       key = "type",
+                       substitutions, deletions, cDNAs)
+
+
+#plot bargraph of hits, deletions and substitutions for dataset 1
+
+ggplot(TOS1_5UTRtypes_3,
+       aes(fill=factor(type, levels=c("cDNAs", "deletions", "substitutions")), y=hits, x=position)) +
+        geom_bar(position = "stack", stat= "identity") +
+        scale_fill_manual(values = c("grey60", "black", "red")) + ggtitle("TOS1 5'UTR") +
+labs(x= "position", y= "hits", fill="")+
+ #set transparency
+
+theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    axis.line.y = element_line(colour = "black"),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.y = element_text(size= 18, face = "bold"),
+    plot.title = element_text(size = 20, face = "bold"),
+    legend.text = element_text(size = 12))
+
+ggsave("Plots/TOS15UTRbarplot3.png", width = 26.3, height = 10, units = "cm")
+
+
+#plot bargraph of hits, deletions and substitutions for dataset 2
+
+ggplot(TOS1_5UTRtypes_4,
+       aes(fill=factor(type, levels=c("cDNAs", "deletions", "substitutions")), y=hits, x=position)) +
+        geom_bar(position = "stack", stat= "identity") +
+        scale_fill_manual(values = c("grey60", "black", "red")) + ggtitle("TOS1 5'UTR") +
+labs(x= "position", y= "hits", fill="")+
+ #set transparency
+
+theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    axis.line.y = element_line(colour = "black"),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.title.y = element_text(size= 18, face = "bold"),
+    plot.title = element_text(size = 20, face = "bold"),
+    legend.text = element_text(size = 12))
+
+ggsave("Plots/TOS15UTRbarplot4.png", width = 26.3, height = 10, units = "cm")
+
+
+```
+  
+
+
+
+
+
+```
